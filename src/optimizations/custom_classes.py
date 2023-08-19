@@ -28,10 +28,10 @@ class CustomData(pybnf.data.Data):
 
         Called by NpModel.execute.
         '''
-        ncols_data = data.shape[1] - 1
+        nrows_data, ncols_data = data.shape
         ncols_result = result.shape[1]
 
-        out = cls(arr=np.hstack([data, result]))
+        out = cls(arr=np.hstack([np.arange(nrows_data).reshape((nrows_data, 1)), data, result]))
         # init header
         colnames = (
             ['time'] + [f'x{i:0{10}d}' for i in range(ncols_data)] + [f'y{i:0{10}d}' for i in range(ncols_result)]
@@ -121,14 +121,14 @@ class NpModel(pybnf.pset.Model):
         return new
 
     def save(self, file_prefix, **kwargs):
-        print('NpModel.save got called')
-        breakpoint()
+        pass
 
     def execute(self, folder, filename, timeout):
         params = np.fromstring(self.pset.values_to_string(), sep='\t')
-        res = fun(self.data, params)
-        ds = CustomData.from_data_and_result(self.data, res)
-        return ds
+        res = self.fun(self.data, params)
+        data = CustomData.from_data_and_result(self.data, res)
+        [suffix] = self.get_suffixes()
+        return {suffix: data}
 
     def get_suffixes(self):
         result = []
@@ -211,7 +211,7 @@ class CustomConfiguration(pybnf.config.Configuration):
 
         return {
             '_optimization': NpModel(
-                parabola,
+                self.config['_custom_func'],
                 self.exp_data['_optimization']['_data'],
                 3,
                 None,
