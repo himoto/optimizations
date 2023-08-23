@@ -12,6 +12,7 @@ import pybnf
 import pybnf.cluster
 import pybnf.algorithms
 import pydantic
+import scipy
 
 from .custom_classes import CustomData, CustomConfiguration
 
@@ -282,7 +283,6 @@ class AlgConfig_AdaptiveMCMC(pydantic.BaseModel):
     burn_in: pydantic.NonNegativeInt = 10_000
     output_hist_every: pydantic.PositiveInt = 100
     hist_bins: pydantic.PositiveInt = 10
-    credible_intervals: List[pydantic.conint(gt=0, lt=100)] = [68, 95]
     stabilizingCov: pydantic.PositiveFloat = 0.001
     adaptive: pydantic.PositiveInt = 10_000
     # TODO there are a few more of these parameters but probably not too important
@@ -401,17 +401,27 @@ def run_simple_optimization(func, inputs, outputs, general_config: GeneralConfig
     alg.run(cluster.client, resume=None, debug=False)
 
     # load results
-    results = pd.read_table(os.path.join(pybnf_config.config["output_dir"], "Results", "sorted_params_final.txt"))
-
-    # TODO mh (and possibly other bayesian algorithms as well )
-    # also produces an output file called Results/credible95_final.txt, which I
-    # assume contains 95% confidence intervals for estimated parameters
-    # -> add to OptimizeResult output
+    # TODO catch any errors during optimization, wrap in scipy.optimize.OptimizeResult
+    output = parse_outputs(pybnf_config.config)
 
     # delete dir
     shutil.rmtree(pybnf_config.config['output_dir'])
 
-    # TODO process results to extract parameters, wrap in scipy.optimize.OptimizeResult
-    # TODO catch any errors during optimization, wrap in scipy.optimize.OptimizeResult
 
-    return results
+    return output
+
+def parse_outputs(config_dir):
+    output = dict()
+    results = pd.read_table(os.path.join(config_dir['output_dir'], "Results", "sorted_params_final.txt"))
+
+    output['success'] = True
+    # solution to optimization problem
+    output['x'] = results.iloc[0, 3:].to_numpy()
+    # value of objective function
+    output['fun'] = results.iloc[0, 2]
+
+    if config_dir['fit_type'] in ['mh', 'pt',]:
+        for interval in config_dir['credible_intervals']:
+            output[f'credible{interval}'] = pd.read_table(os.path.join(config_dir['output_dir'], 'Results', f'credible{interval}_final.txt'))
+
+    return scipy.optimize.OptimizeResult(**output)

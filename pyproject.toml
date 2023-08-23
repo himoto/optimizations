@@ -28,7 +28,8 @@ dependencies = [
   "numpy",
   "pandas",
   "pybnf==1.2.2",
-  "pydantic>=2"
+  "pydantic>=2",
+  "scipy",
 ]
 
 [project.urls]
