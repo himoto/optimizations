@@ -1,8 +1,5 @@
 # optimizations
 
-[![PyPI - Version](https://img.shields.io/pypi/v/optimizations.svg)](https://pypi.org/project/optimizations)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/optimizations.svg)](https://pypi.org/project/optimizations)
-
 -----
 
 **Table of Contents**
@@ -12,9 +9,7 @@
 
 ## Installation
 
-```console
-pip install optimizations
-```
+This package requires `python >= 3.10`. It has been tested against `pybnf==1.2.2`.
 
 ## License
 
