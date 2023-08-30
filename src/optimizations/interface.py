@@ -18,6 +18,25 @@ from .custom_classes import CustomData, CustomConfiguration
 
 
 class UniformParam(pydantic.BaseModel):
+    """
+    Configuration for a uniformly distributed parameter.
+
+    For a detailed description, please refer to the pyBNF documentation 
+    (https://pybnf.readthedocs.io/en/latest/config_keys.html).
+
+    Attributes
+    ----------
+    var_type : str
+    lower_bound : float
+    upper_bound : float
+
+    Parameters
+    ----------
+    var_type : str
+        Possible values: `uniform_var`, `loguniform_var`
+    lower_bound : float
+    upper_bound : float
+    """
     var_type: str
     lower_bound: pydantic.FiniteFloat
     upper_bound: pydantic.FiniteFloat
@@ -47,6 +66,17 @@ class UniformParam(pydantic.BaseModel):
 
 
 class ParamConfig(pydantic.BaseModel):
+    """
+    Configuration for parameter sets.
+
+    Attributes
+    ----------
+    params : List[UniformParam]
+
+    Parameters
+    ----------
+    params : List[UniformParam]
+    """
     params: List[UniformParam]
 
     def update_param_dict(self, d):
@@ -60,6 +90,24 @@ class ParamConfig(pydantic.BaseModel):
 def all_equal_bounds(
     n_params: int, var_type: str, lower_bound: float, upper_bound: float
 ) -> ParamConfig:
+    """
+    Create ParamConfig with multiple UniformParams of all equal bounds.
+
+    Helper function to generate larger parameter sets more easily.
+
+    Parameters
+    ----------
+    n_params : int
+        Number of parameters to create.
+    var_type : str
+        The type of the parameters, possible values: `uniform_var`, `loguniform_var`
+    lower_bound : float
+    upper_bound : float
+
+    Returns
+    -------
+    ParamConfig
+    """
     params = [
         UniformParam(
             var_type=var_type, lower_bound=lower_bound, upper_bound=upper_bound
@@ -70,10 +118,38 @@ def all_equal_bounds(
 
 
 class AlgConfig_DifferentialEvolution(pydantic.BaseModel):
+    """
+    Configuration for Differential Evoluation algorithm.
+
+    For a detailed description of the algorithm parameters, please refer to the pyBNF 
+    documtation (https://pybnf.readthedocs.io/en/latest/config_keys.html).
+
+    Attributes
+    ----------
+    fit_type : str
+        Fixed to `de`.
+    mutation_rate : float
+    mutation_factor : float
+    stop_tolerance : float
+    de_strategy : str
+    islands : int
+    migrate_every : int
+    num_to_migrate : int
+
+    Parameters
+    ----------
+    mutation_rate : float
+    mutation_factor : float
+    stop_tolerance : float
+    de_strategy : str
+    islands : int
+    migrate_every : int
+    num_to_migrate : int
+    """
     fit_type: str = pydantic.Field(default="de", init_var=False)
-    mutation_rate: float = 0.5
-    mutation_factor: float = 1.0
-    stop_tolerance: float = 0.002
+    mutation_rate: pydantic.confloat(ge=0.0, le=1.0) = 0.5
+    mutation_factor: pydantic.confloat(ge=0.0, le=1.0) = 1.0
+    stop_tolerance: pydantic.confloat(ge=0.0, le=1.0) = 0.002
     de_strategy: str = "rand1"
     islands: int = 1
     migrate_every: int = 20
@@ -95,6 +171,28 @@ class AlgConfig_DifferentialEvolution(pydantic.BaseModel):
 
 
 class AlgConfig_AsynchronousDifferentialEvolution(pydantic.BaseModel):
+    """
+    Configuration for Asynchronous Differential Evolution algorithm.
+
+    For a detailed description of the algorithm parameters, please refer to the pyBNF 
+    documtation (https://pybnf.readthedocs.io/en/latest/config_keys.html).
+
+    Attributes
+    ----------
+    fit_type : str
+        Fixed to `ade`.
+    mutation_rate : float
+    mutation_factor : float
+    stop_tolerance : float
+    de_strategy : str
+
+    Parameters
+    ----------
+    mutation_rate : float
+    mutation_factor : float
+    stop_tolerance : float
+    de_strategy : str
+    """
     fit_type: str = pydantic.Field(default="ade", init_var=False)
     mutation_rate: pydantic.confloat(ge=0.0, le=1.0) = 0.5
     mutation_factor: pydantic.confloat(ge=0.0, le=1.0) = 1.0
@@ -117,6 +215,26 @@ class AlgConfig_AsynchronousDifferentialEvolution(pydantic.BaseModel):
 
 
 class AlgConfig_ScatterSearch(pydantic.BaseModel):
+    """
+    Configuration for Scatter Search algorithm.
+
+    For a detailed description of the algorithm parameters, please refer to the pyBNF 
+    documtation (https://pybnf.readthedocs.io/en/latest/config_keys.html).
+
+    Attributes
+    ----------
+    fit_type : str
+        Fixed to `ss`.
+    init_size : int | None
+    local_min_limit : int
+    reserve_size : int
+
+    Parameters
+    ----------
+    init_size : int | None
+    local_min_limit : int
+    reserve_size : int
+    """
     fit_type: str = pydantic.Field(default="ss", init_var=False)
     init_size: pydantic.NonNegativeInt | None = None
     local_min_limit: pydantic.NonNegativeInt = 5
@@ -140,6 +258,33 @@ class AlgConfig_ScatterSearch(pydantic.BaseModel):
 
 
 class AlgConfig_ParticleSwarm(pydantic.BaseModel):
+    """
+    Configuration for Particle Swarm algorithm.
+
+    For a detailed description of the algorithm parameters, please refer to the pyBNF 
+    documtation (https://pybnf.readthedocs.io/en/latest/config_keys.html).
+
+    Attributes
+    ----------
+    fit_type : str
+        Fixed to `pso`.
+    cognitive : float
+    social : float
+    particle_weight : float
+    v_stop : float
+    particle_weight_final : None
+    adaptive_n_max : int
+    adaptive_n_stop : int
+    adaptive_abs_tol : float
+    adaptive_rel_tol : float
+
+    Parameters
+    ----------
+    cognitive : float
+    social : float
+    particle_weight : float
+    v_stop : float
+    """
     fit_type: str = pydantic.Field(default="pso", init_var=False)
     cognitive: pydantic.NonNegativeFloat = 1.5
     social: pydantic.NonNegativeFloat = 1.5
@@ -175,6 +320,38 @@ class AlgConfig_ParticleSwarm(pydantic.BaseModel):
 
 
 class AlgConfig_AdaptiveParticleSwarm(pydantic.BaseModel):
+    """
+    Configuration for Adaptive Particle Swarm algorithm.
+
+    For a detailed description of the algorithm parameters, please refer to the pyBNF 
+    documtation (https://pybnf.readthedocs.io/en/latest/config_keys.html).
+
+    Attributes
+    ----------
+    fit_type : str
+        Fixed to `pso`.
+    cognitive : float
+    social : float
+    particle_weight : float
+    v_stop : float
+    particle_weight_final : float
+    adaptive_n_max : int
+    adaptive_n_stop : int
+    adaptive_abs_tol : float
+    adaptive_rel_tol : float
+
+    Parameters
+    ----------
+    cognitive : float
+    social : float
+    particle_weight : float
+    v_stop : float
+    particle_weight_final : float
+    adaptive_n_max : int
+    adaptive_n_stop : int
+    adaptive_abs_tol : float
+    adaptive_rel_tol : float
+    """
     fit_type: str = pydantic.Field(default="pso", init_var=False)
     cognitive: pydantic.NonNegativeFloat = 1.5
     social: pydantic.NonNegativeFloat = 1.5
@@ -209,6 +386,32 @@ class AlgConfig_AdaptiveParticleSwarm(pydantic.BaseModel):
 
 
 class AlgConfig_MetropolisHastingsMCMC(pydantic.BaseModel):
+    """
+    Configuration for Metropolis Hastings MCMC algorithm.
+
+    For a detailed description of the algorithm parameters, please refer to the pyBNF 
+    documtation (https://pybnf.readthedocs.io/en/latest/config_keys.html).
+
+    Attributes
+    ----------
+    fit_type : str
+        Fixed to `mh`.
+    step_size : float
+    beta : float | List[float]
+    sample_every : int
+    burn_in : int
+    output_hist_every : int
+    credible_intervals : List[int]
+
+    Parameters
+    ----------
+    step_size : float
+    beta : float | List[float]
+    sample_every : int
+    burn_in : int
+    output_hist_every : int
+    credible_intervals : List[int]
+    """
     fit_type: str = pydantic.Field(default="mh", init_var=False)
     step_size: pydantic.PositiveFloat = 0.2
     beta: pydantic.PositiveFloat | List[pydantic.PositiveFloat] = [
@@ -239,11 +442,42 @@ class AlgConfig_MetropolisHastingsMCMC(pydantic.BaseModel):
 
 class AlgConfig_ParallelTempering(pydantic.BaseModel):
     """
-    Configuration for Parallel Tempering Optimization.
+    Configuration for Parallel Tempering algorithm.
 
     If parameter `beta_range` is given, all values in `beta` are ignored.
-    """
 
+    For a detailed description of the algorithm parameters, please refer to the pyBNF 
+    documtation (https://pybnf.readthedocs.io/en/latest/config_keys.html).
+
+    Attributes
+    ----------
+    fit_type : str
+        Fixed to `pt`.
+    step_size : float
+    beta : float | List[float]
+    sample_every  int
+    burn_in : int
+    output_hist_every : int
+    hist_bins : int
+    credible_intervals : List[int]
+    exchange_every : int
+    reps_per_beta : int
+    beta_range : Tuple[int, int] | None
+
+    Parameters
+    ----------
+    step_size : float
+    beta : float | List[float]
+    sample_every  int
+    burn_in : int
+    output_hist_every : int
+    hist_bins : int
+    credible_intervals : List[int]
+    exchange_every : int
+    reps_per_beta : int
+    beta_range : Tuple[int, int] | None
+        If parameter `beta_range` is given, all values in `beta` are ignored.
+    """
     fit_type: str = pydantic.Field(default="pt", init_var=False)
     step_size: pydantic.PositiveFloat = 0.2
     beta: pydantic.PositiveFloat | List[pydantic.PositiveFloat] = [
@@ -287,6 +521,28 @@ class AlgConfig_ParallelTempering(pydantic.BaseModel):
 
 
 class AlgConfig_SimulatedAnnealing(pydantic.BaseModel):
+    """
+    Configuration for Simulated Annealing algorithm.
+
+    For a detailed description of the algorithm parameters, please refer to the pyBNF 
+    documtation (https://pybnf.readthedocs.io/en/latest/config_keys.html).
+
+    Attributes
+    ----------
+    fit_type : str
+        Fixed to `sa`.
+    step_size : float
+    beta : float | List[float]
+    beta_max : float
+    cooling : float
+
+    Parameters
+    ----------
+    step_size : float
+    beta : float | List[float]
+    beta_max : float
+    cooling : float
+    """
     fit_type: str = pydantic.Field(default="sa", init_var=False)
     step_size: pydantic.PositiveFloat = 0.2
     beta: pydantic.PositiveFloat | List[pydantic.PositiveFloat] = [
@@ -313,6 +569,36 @@ class AlgConfig_SimulatedAnnealing(pydantic.BaseModel):
 
 
 class AlgConfig_AdaptiveMCMC(pydantic.BaseModel):
+    """
+    Configuration for Adapative MCMC algorithm.
+
+    For a detailed description of the algorithm parameters, please refer to the pyBNF 
+    documtation (https://pybnf.readthedocs.io/en/latest/config_keys.html).
+
+    Attributes
+    ----------
+    fit_type : str
+        Fixed to `am`.
+    step_size : float
+    beta : float | List[beta]
+    sample_every : int
+    burn_in : int
+    output_hist_every : int
+    hist_bins : int
+    stabilizingCov : float
+    adaptive : int
+
+    Parameters
+    ----------
+    step_size : float
+    beta : float | List[beta]
+    sample_every : int
+    burn_in : int
+    output_hist_every : int
+    hist_bins : int
+    stabilizingCov : float
+    adaptive : int
+    """
     fit_type: str = pydantic.Field(default="am", init_var=False)
     step_size: pydantic.PositiveFloat = 0.2
     beta: pydantic.PositiveFloat | List[pydantic.PositiveFloat] = [
@@ -344,6 +630,30 @@ class AlgConfig_AdaptiveMCMC(pydantic.BaseModel):
 
 
 class GeneralConfig(pydantic.BaseModel):
+    """
+    General configuration for pyBNF opimization.
+
+    For a detailed description of the paramters, please refer to the pyBNF documtation
+    (https://pybnf.readthedocs.io/en/latest/config_keys.html).
+
+    Attributes
+    ----------
+    param_config : ParamConfig
+    algorithm_config: AlgConfig_DifferentialEvolution | AlgConfig_AsynchronousDifferentialEvolution | AlgConfig_ScatterSearch | AlgConfig_ParticleSwarm | AlgConfig_AdaptiveParticleSwarm | AlgConfig_MetropolisHastingsMCMC | AlgConfig_ParallelTempering | AlgConfig_SimulatedAnnealing | AlgConfig_AdaptiveMCMC
+    objfunc : str
+    population_size : int
+    max_iterations : int
+    verbosity : int
+
+    Parameters
+    ----------
+    param_config : ParamConfig
+    algorithm_config: AlgConfig_DifferentialEvolution | AlgConfig_AsynchronousDifferentialEvolution | AlgConfig_ScatterSearch | AlgConfig_ParticleSwarm | AlgConfig_AdaptiveParticleSwarm | AlgConfig_MetropolisHastingsMCMC | AlgConfig_ParallelTempering | AlgConfig_SimulatedAnnealing | AlgConfig_AdaptiveMCMC
+    objfunc : str
+    population_size : int
+    max_iterations : int
+    verbosity : int
+    """
     param_config: ParamConfig
     algorithm_config: AlgConfig_DifferentialEvolution | AlgConfig_AsynchronousDifferentialEvolution | AlgConfig_ScatterSearch | AlgConfig_ParticleSwarm | AlgConfig_AdaptiveParticleSwarm | AlgConfig_MetropolisHastingsMCMC | AlgConfig_ParallelTempering | AlgConfig_SimulatedAnnealing | AlgConfig_AdaptiveMCMC
     objfunc: str = "sos"
