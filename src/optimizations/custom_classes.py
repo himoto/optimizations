@@ -253,7 +253,7 @@ class CustomConfiguration(pybnf.config.Configuration):
             "_optimization": NpModel(
                 self.config["_custom_func"],
                 self.exp_data["_optimization"]["_data"],
-                3,
+                len(self._load_variables()),
                 None,
             )
         }
