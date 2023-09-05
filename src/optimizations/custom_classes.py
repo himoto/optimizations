@@ -137,7 +137,7 @@ class NpModel(pybnf.pset.Model):
 
     def execute(self, folder, filename, timeout):
         params = np.fromstring(self.pset.values_to_string(), sep="\t")
-        res = self.fun(self.data, params)
+        res = np.atleast_2d(self.fun(self.data, params))
         data = CustomData.from_data_and_result(self.data, res)
         [suffix] = self.get_suffixes()
         return {suffix: data}
