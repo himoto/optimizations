@@ -14,7 +14,7 @@ import pybnf.algorithms
 import pydantic
 import scipy
 
-from .custom_classes import CustomData, CustomConfiguration
+from .custom_classes import CustomData, CustomConfiguration, FakeCluster
 
 
 class UniformParam(pydantic.BaseModel):
@@ -678,6 +678,7 @@ class GeneralConfig(pydantic.BaseModel):
 
         config_dict["_custom_func"] = func
         config_dict["_custom_data"] = data
+        config_dict["_custom_mockdusk"] = True
 
         # general params
         general_params = self.model_dump()
@@ -753,7 +754,10 @@ def run_simple_optimization(func, inputs, outputs, general_config: GeneralConfig
 
     # TODO check if cluster is actually useful. If not, mock it
     # TODO check arguments for cluster
-    cluster = pybnf.cluster.Cluster(pybnf_config, "test", False, "info")
+    if param_dict['_custom_mockdusk']:
+        cluster = FakeCluster()
+    else:
+        cluster = pybnf.cluster.Cluster(pybnf_config, "test", False, "info")
     alg.run(cluster.client, resume=None, debug=False)
 
     # load results
