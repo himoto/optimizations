@@ -290,13 +290,14 @@ class MockClient:
     """
 
     def __init__(self):
-        # self.loop = None
-        #
-        # # set as current client: necessary for custom_as_completed call in pybnf code
-        # distributed.client._current_client.set(self)
         pass
 
     def submit(self, func, *args, **kwargs) -> concurrent.futures.Future:
+        # This does not fully comply with the pybnf code base, as there
+        # `distributed.Future` objects are used. However, there is no convienent way
+        # to create those without a distributed client, so we are using the futures from
+        # concurrent.futures and monkeypatch the pybnf.algorithms.custom_as_completed
+        # class to handle these futures
         future = concurrent.futures.Future()
         future.set_result(func(*args))
         return future

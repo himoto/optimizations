@@ -655,6 +655,9 @@ class GeneralConfig(pydantic.BaseModel):
     population_size : int
     max_iterations : int
     verbosity : int
+    min_objective : float
+    disable_dusk : bool
+        Whether to disable dusk/distributed backend and run jobs in series.
 
     Parameters
     ----------
@@ -664,6 +667,9 @@ class GeneralConfig(pydantic.BaseModel):
     population_size : int
     max_iterations : int
     verbosity : int
+    min_objective : float
+    disable_dusk : bool
+        Whether to disable dusk/distributed backend and run jobs in series.
     """
 
     param_config: ParamConfig
@@ -671,6 +677,8 @@ class GeneralConfig(pydantic.BaseModel):
     objfunc: str = "sos"
     population_size: pydantic.PositiveInt
     max_iterations: pydantic.PositiveInt
+    min_objective: float = -np.inf
+    disable_dusk: bool = True
     verbosity: pydantic.conint(ge=0, le=2)
 
     @pydantic.field_validator("objfunc")
@@ -690,7 +698,7 @@ class GeneralConfig(pydantic.BaseModel):
 
         config_dict["_custom_func"] = func
         config_dict["_custom_data"] = data
-        config_dict["_custom_mockdusk"] = True
+        config_dict["_custom_disable_dusk"] = self.disable_dusk
 
         # general params
         general_params = self.model_dump()
@@ -706,6 +714,7 @@ class GeneralConfig(pydantic.BaseModel):
         del config_dict["param_config"]
         del config_dict["algorithm_config"]
         del config_dict["n_params"]
+        del config_dict["disable_dusk"]
         return config_dict
 
 
@@ -764,16 +773,16 @@ def run_simple_optimization(func, inputs, outputs, general_config: GeneralConfig
         os.path.join(pybnf_config.config["output_dir"], "Results"), exist_ok=True
     )
 
-    if param_dict["_custom_mockdusk"]:
+    if param_dict["_custom_disable_dusk"]:
         cluster = FakeCluster()
     else:
         cluster = pybnf.cluster.Cluster(pybnf_config, "test", False, "info")
     alg.run(cluster.client, resume=None, debug=False)
-    print(f"Success count: {alg.success_count}")
 
     # load results
     # TODO catch any errors during optimization, wrap in scipy.optimize.OptimizeResult
     output = parse_outputs(pybnf_config.config)
+    output['nfev'] = alg.success_count
 
     # delete dir
     shutil.rmtree(pybnf_config.config["output_dir"])
