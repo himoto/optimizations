@@ -654,10 +654,11 @@ class GeneralConfig(pydantic.BaseModel):
     objfunc : str
     population_size : int
     max_iterations : int
-    verbosity : int
     min_objective : float
     disable_dusk : bool
         Whether to disable dusk/distributed backend and run jobs in series.
+    num_to_output : int
+    verbosity : int
 
     Parameters
     ----------
@@ -666,10 +667,11 @@ class GeneralConfig(pydantic.BaseModel):
     objfunc : str
     population_size : int
     max_iterations : int
-    verbosity : int
     min_objective : float
     disable_dusk : bool
         Whether to disable dusk/distributed backend and run jobs in series.
+    num_to_output : int
+    verbosity : int
     """
 
     param_config: ParamConfig
@@ -679,6 +681,7 @@ class GeneralConfig(pydantic.BaseModel):
     max_iterations: pydantic.PositiveInt
     min_objective: float = -np.inf
     disable_dusk: bool = True
+    num_to_output: pydantic.PositiveInt = 5_000
     verbosity: pydantic.conint(ge=0, le=2)
 
     @pydantic.field_validator("objfunc")
