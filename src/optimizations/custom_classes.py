@@ -136,6 +136,9 @@ class NpModel(pybnf.pset.Model):
     def save(self, file_prefix, **kwargs):
         pass
 
+    def save_all(self, file_prefix):
+        pass
+
     def execute(self, folder, filename, timeout):
         params = np.fromstring(self.pset.values_to_string(), sep="\t")
         res = np.atleast_2d(self.fun(self.data, params))
