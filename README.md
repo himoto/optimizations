@@ -1,3 +1,5 @@
+[![Lifecycle:Experimental](https://img.shields.io/badge/Lifecycle-Experimental-339999)](https://github.com/PhilippJunk/optimizations)
+
 # optimizations
 
 This python package is a wrapper around the `pybnf` python package, which allows to run the sophisticated optimization algorithms in that package with any arbitrary python function instead of formulating it as a BNGL or SBML model.
