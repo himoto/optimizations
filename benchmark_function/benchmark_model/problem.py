@@ -44,18 +44,15 @@ class OptimizationProblem(Observable):
         self.set_data()
 
         if self.simulate(x) is None:
-            error = np.zeros(2 * len(self.obs_names))
+            error = np.zeros(len(self.obs_names))
             for i, observable in enumerate(self.obs_names):
                 norm_max = np.max(self.simulations[self.obs_names.index(observable)])
                 timepoint = self.get_timepoint(observable)
-                error[i] = self._compute_objval_rss(
-                    self.simulations[self.obs_names.index(observable), self.conditions.index("EGF"), timepoint] / norm_max,
-                    self.experiments[self.obs_names.index(observable)]["EGF"],
-                )
-                error[i + 1] = self._compute_objval_rss(
-                    self.simulations[self.obs_names.index(observable), self.conditions.index("HRG"), timepoint] / norm_max,
-                    self.experiments[self.obs_names.index(observable)]["HRG"],
-                )
+                for condition in ["EGF", "HRG"]:
+                    error[i] += self._compute_objval_rss(
+                        self.simulations[self.obs_names.index(observable), self.conditions.index(condition), timepoint] / norm_max,
+                        self.experiments[self.obs_names.index(observable)][condition],
+                    )
             return np.sum(error)  # < 1e12
         else:
             return 1e12
